@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="error_network">Произошла ошибка сети. Пожалуйста, проверьте подключение.</string>
+    <string name="error_timeout">Время ожидания истекло. Пожалуйста, попробуйте позже.</string>
+    <string name="error_server">Ошибка сервера. Пожалуйста, попробуйте позже.</string>
+    <string name="error_unknown">Произошла неизвестная ошибка. Пожалуйста, обратитесь в службу поддержки.</string>
+    <string name="error_loading_data">Ошибка загрузки данных. Пожалуйста, проверьте подключение к интернету.</string>
+    <string name="error_no_data_for_view">Нет данных для отображения.</string>
+</resources>

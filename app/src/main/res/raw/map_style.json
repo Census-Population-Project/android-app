@@ -1,0 +1,22 @@
+[
+    {
+        "tags": {
+            "any": [
+                "poi",
+                "transit",
+                "traffic_light"
+            ]
+        },
+        "stylers": {
+            "visibility": "off"
+        }
+    },
+    {
+        "types": [
+            "point"
+        ],
+        "stylers": {
+            "visibility": "off"
+        }
+    }
+]

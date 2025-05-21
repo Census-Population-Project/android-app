@@ -1,3 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Census Population</string>
+    <string name="app_name">Перепись Населения</string>
+    <string name="map">Карта</string>
+    <string name="regions">Регионы</string>
+    <string name="statistics">Статистика</string>
+    <string name="census_population">Перепись населения</string>
+    <string name="login">Войти в панель переписчика</string>
+    <string name="irs">Перейти в справочную систему</string>
+    <string name="made_with_love">Made with ❤️</string>
+    <string name="version">Версия: %s</string>
+    <string name="choose_census">Выбрать перепись</string>
+    <string name="close">Закрыть</string>
+    <string name="region_city_info">Информация о регионе/городе</string>
+    <string name="full_statistics">Общая статистика</string>
 </resources>
