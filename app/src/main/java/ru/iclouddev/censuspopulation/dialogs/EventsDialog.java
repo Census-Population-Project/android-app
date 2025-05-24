@@ -20,21 +20,21 @@ import java.util.List;
 
 import ru.iclouddev.censuspopulation.R;
 import ru.iclouddev.censuspopulation.adapters.CensusEventsAdapter;
-import ru.iclouddev.censuspopulation.data.api.ApiRepository;
-import ru.iclouddev.censuspopulation.data.model.CensusEvent;
-import ru.iclouddev.censuspopulation.data.model.CensusEvents;
+import ru.iclouddev.censuspopulation.api.APIRepository;
+import ru.iclouddev.censuspopulation.api.models.Event;
+import ru.iclouddev.censuspopulation.api.models.Events;
 import ru.iclouddev.censuspopulation.utils.Utils;
 
-public class CensusEventsDialog extends Dialog {
+public class EventsDialog extends Dialog {
     private static final String TAG = "CensusEventsDialog";
     private static final int PAGE_SIZE = 10;
 
-    private final ApiRepository apiRepository;
+    private final APIRepository apiRepository;
     private final Utils utils;
     private final OnCensusEventSelectedListener listener;
-    private final List<CensusEvent> censusEvents;
+    private final List<Event> events;
     private final CensusEventsAdapter adapter;
-    private final CensusEvent selectedEvent;
+    private final Event selectedEvent;
 
     private RecyclerView eventsRecyclerView;
     private ImageButton prevButton;
@@ -47,16 +47,16 @@ public class CensusEventsDialog extends Dialog {
     private int totalItems = 0;
 
     public interface OnCensusEventSelectedListener {
-        void onCensusEventSelected(CensusEvent event);
+        void onCensusEventSelected(Event event);
     }
 
-    public CensusEventsDialog(@NonNull Context context, OnCensusEventSelectedListener listener, CensusEvent selectedEvent) {
+    public EventsDialog(@NonNull Context context, OnCensusEventSelectedListener listener, Event selectedEvent) {
         super(context);
         this.listener = listener;
         this.selectedEvent = selectedEvent;
-        this.censusEvents = new ArrayList<>();
-        this.adapter = new CensusEventsAdapter(censusEvents, this::onEventSelected);
-        this.apiRepository = new ApiRepository();
+        this.events = new ArrayList<>();
+        this.adapter = new CensusEventsAdapter(events, this::onEventSelected);
+        this.apiRepository = new APIRepository();
         this.utils = new Utils();
     }
 
@@ -64,7 +64,7 @@ public class CensusEventsDialog extends Dialog {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.dialog_census_events);
+        setContentView(R.layout.dialog_events);
 
         Window window = getWindow();
         if (window != null) {
@@ -97,11 +97,11 @@ public class CensusEventsDialog extends Dialog {
         Log.d(TAG, "Loading census events, selected event: " +
                 (selectedEvent != null ? selectedEvent.getName() : "null"));
 
-        apiRepository.getCensusEvents(PAGE_SIZE, currentPage * PAGE_SIZE, new ApiRepository.ApiCallback<CensusEvents>() {
+        apiRepository.getCensusEvents(PAGE_SIZE, currentPage * PAGE_SIZE, new APIRepository.ApiCallback<Events>() {
             @Override
-            public void onSuccess(CensusEvents response) {
-                censusEvents.clear();
-                censusEvents.addAll(List.of(response.getEvents()));
+            public void onSuccess(Events response) {
+                events.clear();
+                events.addAll(List.of(response.getEvents()));
                 totalItems = response.getTotal();
 
                 // Если есть выбранная перепись, находим её и прокручиваем к ней
@@ -127,8 +127,8 @@ public class CensusEventsDialog extends Dialog {
     }
 
     private int findSelectedEventPosition() {
-        for (int i = 0; i < censusEvents.size(); i++) {
-            if (censusEvents.get(i).getId().equals(selectedEvent.getId())) {
+        for (int i = 0; i < events.size(); i++) {
+            if (events.get(i).getId().equals(selectedEvent.getId())) {
                 return i;
             }
         }
@@ -162,7 +162,7 @@ public class CensusEventsDialog extends Dialog {
         loadCensusEvents();
     }
 
-    private void onEventSelected(CensusEvent event) {
+    private void onEventSelected(Event event) {
         if (listener != null) {
             listener.onCensusEventSelected(event);
         }

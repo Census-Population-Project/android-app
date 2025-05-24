@@ -4,20 +4,23 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import ru.iclouddev.censuspopulation.databinding.ActivityIrsContainerBinding;
 import ru.iclouddev.censuspopulation.fragments.MapFragment;
-import ru.iclouddev.censuspopulation.fragments.RegionInfoFragment;
-import ru.iclouddev.censuspopulation.fragments.StatsFragment;
+import ru.iclouddev.censuspopulation.fragments.InfoFragment;
+import ru.iclouddev.censuspopulation.fragments.StatisticsFragment;
+import ru.iclouddev.censuspopulation.viewmodels.CensusViewModel;
 
 public class ContainerIRSActivity extends AppCompatActivity {
     private ActivityIrsContainerBinding binding;
     private MapFragment mapFragment;
-    private RegionInfoFragment regionInfoFragment;
-    private StatsFragment statsFragment;
+    private InfoFragment infoFragment;
+    private StatisticsFragment statisticsFragment;
     private Fragment activeFragment;
+    private CensusViewModel censusViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,9 +30,12 @@ public class ContainerIRSActivity extends AppCompatActivity {
         BottomNavigationView bottomNavigationView = binding.bottomNavigation;
         bottomNavigationView.setItemIconTintList(null);
 
+        // Initialize ViewModel
+        censusViewModel = new ViewModelProvider(this).get(CensusViewModel.class);
+
         mapFragment = new MapFragment();
-        regionInfoFragment = new RegionInfoFragment();
-        statsFragment = new StatsFragment();
+        infoFragment = new InfoFragment();
+        statisticsFragment = new StatisticsFragment();
         activeFragment = mapFragment;
 
         setupBottomNavigation();
@@ -37,10 +43,10 @@ public class ContainerIRSActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.fragmentContainer, mapFragment, "map")
-                    .add(R.id.fragmentContainer, regionInfoFragment, "region")
-                    .hide(regionInfoFragment)
-                    .add(R.id.fragmentContainer, statsFragment, "stats")
-                    .hide(statsFragment)
+                    .add(R.id.fragmentContainer, infoFragment, "region")
+                    .hide(infoFragment)
+                    .add(R.id.fragmentContainer, statisticsFragment, "stats")
+                    .hide(statisticsFragment)
                     .commit();
         }
     }
@@ -54,9 +60,9 @@ public class ContainerIRSActivity extends AppCompatActivity {
             if (itemId == R.id.navigation_map) {
                 selectedFragment = mapFragment;
             } else if (itemId == R.id.navigation_region_info) {
-                selectedFragment = regionInfoFragment;
+                selectedFragment = infoFragment;
             } else if (itemId == R.id.navigation_statistics) {
-                selectedFragment = statsFragment;
+                selectedFragment = statisticsFragment;
             }
 
             if (selectedFragment != null && selectedFragment != activeFragment) {
@@ -69,5 +75,9 @@ public class ContainerIRSActivity extends AppCompatActivity {
             }
             return false;
         });
+    }
+
+    public CensusViewModel getCensusViewModel() {
+        return censusViewModel;
     }
 } 

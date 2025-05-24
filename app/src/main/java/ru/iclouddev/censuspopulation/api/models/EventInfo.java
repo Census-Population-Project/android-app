@@ -1,10 +1,10 @@
-package ru.iclouddev.censuspopulation.data.model;
+package ru.iclouddev.censuspopulation.api.models;
 
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-public class PopulationInfo {
+public class EventInfo {
     @SerializedName("id")
     private String id;
 
@@ -17,8 +17,8 @@ public class PopulationInfo {
     @SerializedName("end_datetime")
     private String endDateTime;
 
-    @SerializedName("population")
-    private int population;
+    @SerializedName("population_count")
+    private int populationCount;
 
     @SerializedName("genders")
     private List<GenderInfo> genders;
@@ -39,8 +39,8 @@ public class PopulationInfo {
         return endDateTime;
     }
 
-    public int getPopulation() {
-        return population;
+    public int getPopulationCount() {
+        return populationCount;
     }
 
     public int getMaleCount() {

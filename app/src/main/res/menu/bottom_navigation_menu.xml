@@ -7,7 +7,7 @@
     <item
             android:id="@+id/navigation_region_info"
             android:icon="@drawable/info_selector"
-            android:title="@string/regions" />
+            android:title="@string/info" />
     <item
             android:id="@+id/navigation_statistics"
             android:icon="@drawable/statistics_selector"

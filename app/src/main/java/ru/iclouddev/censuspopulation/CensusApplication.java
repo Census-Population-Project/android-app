@@ -6,11 +6,11 @@ import com.yandex.mapkit.MapKitFactory;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import ru.iclouddev.censuspopulation.data.api.ApiService;
+import ru.iclouddev.censuspopulation.api.APIService;
 
 public class CensusApplication extends Application {
     private static CensusApplication instance;
-    private ApiService apiService;
+    private APIService apiService;
 
     @Override
     public void onCreate() {
@@ -27,14 +27,14 @@ public class CensusApplication extends Application {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        apiService = retrofit.create(ApiService.class);
+        apiService = retrofit.create(APIService.class);
     }
 
     public static CensusApplication getInstance() {
         return instance;
     }
 
-    public ApiService getApiService() {
+    public APIService getApiService() {
         return apiService;
     }
 } 

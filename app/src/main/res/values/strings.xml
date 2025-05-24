@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Перепись Населения</string>
     <string name="map">Карта</string>
-    <string name="regions">Регионы</string>
+    <string name="info">Информация</string>
     <string name="statistics">Статистика</string>
     <string name="census_population">Перепись населения</string>
     <string name="login">Войти в панель переписчика</string>
@@ -13,4 +13,14 @@
     <string name="close">Закрыть</string>
     <string name="region_city_info">Информация о регионе/городе</string>
     <string name="full_statistics">Общая статистика</string>
+    <string name="error_loading_census_events">Ошибка загрузки списка переписей</string>
+    <string name="error_loading_census_details">Ошибка загрузки деталей переписи</string>
+    <string name="error_loading_region_statistics">Ошибка загрузки статистики региона</string>
+    <string name="error_loading_city_statistics">Ошибка загрузки статистики города</string>
+    <string name="region">Регион</string>
+    <string name="choosing_census">Выбор переписи</string>
+    <string name="city">Город</string>
+    <string name="general_information">Общая информация</string>
+    <string name="demographic_data">Демографические данные</string>
+    <string name="education_and_languages">Образование и языки</string>
 </resources>

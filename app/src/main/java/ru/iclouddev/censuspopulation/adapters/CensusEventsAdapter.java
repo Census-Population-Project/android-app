@@ -14,26 +14,26 @@ import java.util.List;
 import java.util.Locale;
 
 import ru.iclouddev.censuspopulation.R;
-import ru.iclouddev.censuspopulation.data.model.CensusEvent;
+import ru.iclouddev.censuspopulation.api.models.Event;
 
 public class CensusEventsAdapter extends RecyclerView.Adapter<CensusEventsAdapter.ViewHolder> {
     private static final String TAG = "CensusEventsAdapter";
-    private final List<CensusEvent> events;
+    private final List<Event> events;
     private final OnCensusEventClickListener listener;
-    private CensusEvent selectedEvent;
+    private Event selectedEvent;
     private SimpleDateFormat dateFormat;
 
     public interface OnCensusEventClickListener {
-        void onCensusEventClick(CensusEvent event);
+        void onCensusEventClick(Event event);
     }
 
-    public CensusEventsAdapter(List<CensusEvent> events, OnCensusEventClickListener listener) {
+    public CensusEventsAdapter(List<Event> events, OnCensusEventClickListener listener) {
         this.events = events;
         this.listener = listener;
         this.dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
     }
 
-    public void setSelectedEvent(CensusEvent event) {
+    public void setSelectedEvent(Event event) {
         Log.d(TAG, "Setting selected event: " + (event != null ? event.getName() : "null"));
         this.selectedEvent = event;
         notifyDataSetChanged();
@@ -43,13 +43,13 @@ public class CensusEventsAdapter extends RecyclerView.Adapter<CensusEventsAdapte
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_census_event, parent, false);
+                .inflate(R.layout.item_event, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        CensusEvent event = events.get(position);
+        Event event = events.get(position);
         holder.nameTextView.setText(event.getName());
 
         String dateRange = String.format("%s — %s",
@@ -77,7 +77,7 @@ public class CensusEventsAdapter extends RecyclerView.Adapter<CensusEventsAdapte
         return events.size();
     }
 
-    public void updateEvents(List<CensusEvent> newEvents) {
+    public void updateEvents(List<Event> newEvents) {
         events.clear();
         events.addAll(newEvents);
         notifyDataSetChanged();

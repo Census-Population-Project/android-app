@@ -1,14 +1,14 @@
-package ru.iclouddev.censuspopulation.data.model;
+package ru.iclouddev.censuspopulation.api.models;
 
 import com.google.gson.annotations.SerializedName;
 
-public class CensusEvents {
+public class Events {
     @SerializedName("events")
-    private CensusEvent[] events;
+    private Event[] events;
     @SerializedName("total")
     private int total;
 
-    public CensusEvent[] getEvents() {
+    public Event[] getEvents() {
         return events;
     }
 

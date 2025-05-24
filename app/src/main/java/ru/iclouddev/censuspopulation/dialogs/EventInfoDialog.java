@@ -13,14 +13,14 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import ru.iclouddev.censuspopulation.R;
-import ru.iclouddev.censuspopulation.data.model.PopulationInfo;
+import ru.iclouddev.censuspopulation.api.models.EventInfo;
 
-public class PopulationInfoDialog extends Dialog {
+public class EventInfoDialog extends Dialog {
     private static final String TAG = "PopulationInfoDialog";
     private final String title;
-    private final PopulationInfo info;
+    private final EventInfo info;
 
-    public PopulationInfoDialog(@NonNull Context context, String title, PopulationInfo info) {
+    public EventInfoDialog(@NonNull Context context, String title, EventInfo info) {
         super(context);
         this.title = title;
         this.info = info;
@@ -30,7 +30,7 @@ public class PopulationInfoDialog extends Dialog {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.dialog_population_info);
+        setContentView(R.layout.dialog_event_info);
 
         // Настройка размера и прозрачности диалога
         Window window = getWindow();
@@ -49,7 +49,7 @@ public class PopulationInfoDialog extends Dialog {
         ImageButton closeButton = findViewById(R.id.closeButton);
 
         titleView.setText(title);
-        populationView.setText(String.format("Общая численность: %d чел.", info.getPopulation()));
+        populationView.setText(String.format("Общая численность: %d чел.", info.getPopulationCount()));
         maleCountView.setText(String.format("Мужчин: %d чел.", info.getMaleCount()));
         femaleCountView.setText(String.format("Женщин: %d чел.", info.getFemaleCount()));
 

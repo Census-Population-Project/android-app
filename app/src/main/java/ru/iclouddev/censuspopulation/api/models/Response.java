@@ -1,8 +1,8 @@
-package ru.iclouddev.censuspopulation.data.model;
+package ru.iclouddev.censuspopulation.api.models;
 
 import com.google.gson.annotations.SerializedName;
 
-public class ApiResponse<T> {
+public class Response<T> {
     @SerializedName("status")
     private String status;
 

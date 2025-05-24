@@ -19,6 +19,7 @@ import com.yandex.mapkit.map.CameraListener;
 import com.yandex.mapkit.map.CameraUpdateReason;
 import com.yandex.mapkit.map.IconStyle;
 import com.yandex.mapkit.map.Map;
+import com.yandex.mapkit.map.MapObjectTapListener;
 import com.yandex.mapkit.map.TextStyle;
 import com.yandex.mapkit.mapview.MapView;
 import com.yandex.mapkit.geometry.Point;
@@ -28,14 +29,17 @@ import com.yandex.mapkit.map.PlacemarkMapObject;
 import com.yandex.runtime.image.ImageProvider;
 
 import ru.iclouddev.censuspopulation.R;
-import ru.iclouddev.censuspopulation.data.model.CensusEvent;
-import ru.iclouddev.censuspopulation.data.model.CensusEvents;
+import ru.iclouddev.censuspopulation.api.models.City;
+import ru.iclouddev.censuspopulation.api.models.Event;
+import ru.iclouddev.censuspopulation.api.models.Events;
+import ru.iclouddev.censuspopulation.api.models.Region;
 import ru.iclouddev.censuspopulation.databinding.FragmentMapBinding;
-import ru.iclouddev.censuspopulation.dialogs.CensusEventsDialog;
+import ru.iclouddev.censuspopulation.dialogs.EventsDialog;
 import ru.iclouddev.censuspopulation.utils.Utils;
-import ru.iclouddev.censuspopulation.data.model.PopulationInfo;
-import ru.iclouddev.censuspopulation.dialogs.PopulationInfoDialog;
-import ru.iclouddev.censuspopulation.data.api.ApiRepository;
+import ru.iclouddev.censuspopulation.api.models.EventInfo;
+import ru.iclouddev.censuspopulation.dialogs.EventInfoDialog;
+import ru.iclouddev.censuspopulation.api.APIRepository;
+import ru.iclouddev.censuspopulation.ContainerIRSActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,27 +48,30 @@ public class MapFragment extends Fragment {
     private static final String TAG = "MapFragment";
     private FragmentMapBinding binding;
     private MapView mapView;
-    private CensusEventsDialog censusEventsDialog;
-    private List<CensusEvent> censusEvents;
-    private CensusEvent selectedCensusEvent;
+    private EventsDialog eventsDialog;
+    private List<Event> events;
+    private Event selectedEvent;
     private Utils utils;
     private MapObjectCollection mapObjects;
     private List<PlacemarkMapObject> regionPlacemarks;
     private List<PlacemarkMapObject> cityPlacemarks;
-    private static final float REGIONS_ZOOM_LEVEL = 8.0f;
-    private static final float CITIES_ZOOM_LEVEL = 8.0f;
+    private List<MapObjectTapListener> mapObjectTapListeners;
+    private static final float REGIONS_ZOOM_LEVEL = 8.5f;
+    private static final float CITIES_ZOOM_LEVEL = 8.5f;
+    private static final float REGION_TEXT_VISIBILITY_ZOOM = 7.5f; // Уровень зума, при котором становятся видны названия регионов
     private CameraListener cameraListener;
-    private ApiRepository apiRepository;
+    private APIRepository apiRepository;
     private ProgressBar progressBar;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentMapBinding.inflate(inflater, container, false);
-        censusEvents = new ArrayList<>();
+        events = new ArrayList<>();
         regionPlacemarks = new ArrayList<>();
         cityPlacemarks = new ArrayList<>();
-        apiRepository = new ApiRepository();
+        mapObjectTapListeners = new ArrayList<>();
+        apiRepository = new APIRepository();
         utils = new Utils();
         return binding.getRoot();
     }
@@ -101,16 +108,37 @@ public class MapFragment extends Fragment {
 
         selectCensusButton.setOnClickListener(v -> showCensusEventDialog());
 
+        // Подписываемся на изменения выбранной переписи
+        if (getActivity() instanceof ContainerIRSActivity) {
+            ((ContainerIRSActivity) getActivity()).getCensusViewModel()
+                .getSelectedCensusEvent()
+                .observe(getViewLifecycleOwner(), event -> {
+                    if (event != null) {
+                        selectedEvent = event;
+                        loadCensusEventDetails(event.getId());
+                    }
+                });
+        }
+
         loadCensusEvents();
     }
 
     private void updateMarkersVisibility(float zoom) {
         Log.d(TAG, "Updating markers visibility for zoom: " + zoom);
 
-        // Обновляем видимость регионов
+        // Обновляем видимость регионов и их названий
         for (PlacemarkMapObject placemark : regionPlacemarks) {
-            boolean visible = zoom <= CITIES_ZOOM_LEVEL;
-            placemark.setVisible(visible);
+            boolean markerVisible = zoom <= CITIES_ZOOM_LEVEL;
+            boolean textVisible = zoom <= REGION_TEXT_VISIBILITY_ZOOM;
+            placemark.setVisible(markerVisible);
+            if (textVisible) {
+                placemark.setText("");
+            } else {
+                String regionName = placemark.getUserData() instanceof Region
+                        ? ((Region) placemark.getUserData()).getName()
+                        : "";
+                placemark.setText(regionName);
+            }
         }
 
         // Обновляем видимость городов
@@ -120,15 +148,16 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void displayCensusEventData(CensusEvent event) {
+    private void displayCensusEventData(Event event) {
         // Очищаем предыдущие маркеры
         mapObjects.clear();
         regionPlacemarks.clear();
         cityPlacemarks.clear();
+        mapObjectTapListeners.clear();
 
         TextStyle textStyle = new TextStyle();
         textStyle.setColor(R.color.white);
-        textStyle.setSize(15);
+        textStyle.setSize(10);
         textStyle.setOffsetFromIcon(true);
         textStyle.setPlacement(TextStyle.Placement.TOP);
 
@@ -140,53 +169,60 @@ public class MapFragment extends Fragment {
 
         // Добавляем маркеры регионов
         if (event.getRegions() != null) {
-            for (CensusEvent.Region region : event.getRegions()) {
+            for (Region region : event.getRegions()) {
                 PlacemarkMapObject placemark = mapObjects.addPlacemark();
                 placemark.setGeometry(new Point(region.getLatitude(), region.getLongitude()));
                 placemark.setIcon(ImageProvider.fromResource(getContext(), R.drawable.ic_region), iconStyle);
                 placemark.setText(region.getName(), textStyle);
                 placemark.setVisible(currentZoom <= CITIES_ZOOM_LEVEL);
                 placemark.setUserData(region); // Сохраняем данные региона
-                placemark.addTapListener((mapObject, point) -> {
+                MapObjectTapListener tapListener = (mapObject, point) -> {
                     loadRegionPopulationInfo(event.getId(), region.getId(), region.getName());
                     return true;
-                });
+                };
+                mapObjectTapListeners.add(tapListener);
+                placemark.addTapListener(tapListener);
                 regionPlacemarks.add(placemark);
             }
         }
 
         // Добавляем маркеры городов
         if (event.getCities() != null) {
-            for (CensusEvent.City city : event.getCities()) {
+            for (City city : event.getCities()) {
                 PlacemarkMapObject placemark = mapObjects.addPlacemark();
                 placemark.setGeometry(new Point(city.getLatitude(), city.getLongitude()));
                 placemark.setIcon(ImageProvider.fromResource(getContext(), R.drawable.ic_city), iconStyle);
                 placemark.setText(city.getName(), textStyle);
                 placemark.setVisible(currentZoom > REGIONS_ZOOM_LEVEL);
                 placemark.setUserData(city); // Сохраняем данные города
-                placemark.addTapListener((mapObject, point) -> {
+                MapObjectTapListener tapListener = (mapObject, point) -> {
                     loadCityPopulationInfo(event.getId(), city.getId(), city.getName());
                     return true;
-                });
+                };
+                mapObjectTapListeners.add(tapListener);
+                placemark.addTapListener(tapListener);
                 cityPlacemarks.add(placemark);
             }
         }
     }
 
     private void showCensusEventDialog() {
-        censusEventsDialog = new CensusEventsDialog(requireContext(), this::onCensusEventSelected, selectedCensusEvent);
-        censusEventsDialog.show();
+        eventsDialog = new EventsDialog(requireContext(), this::onCensusEventSelected, selectedEvent);
+        eventsDialog.show();
     }
 
-    private void onCensusEventSelected(CensusEvent event) {
-        selectedCensusEvent = event;
+    private void onCensusEventSelected(Event event) {
+        selectedEvent = event;
+        if (getActivity() instanceof ContainerIRSActivity) {
+            ((ContainerIRSActivity) getActivity()).getCensusViewModel().setSelectedCensusEvent(event);
+        }
         loadCensusEventDetails(event.getId());
     }
 
     private void loadCensusEventDetails(String eventId) {
-        apiRepository.getCensusEventDetails(eventId, new ApiRepository.ApiCallback<CensusEvent>() {
+        apiRepository.getCensusEventDetails(eventId, new APIRepository.ApiCallback<Event>() {
             @Override
-            public void onSuccess(CensusEvent result) {
+            public void onSuccess(Event result) {
                 displayCensusEventData(result);
             }
 
@@ -199,12 +235,12 @@ public class MapFragment extends Fragment {
     }
 
     private void loadCensusEvents() {
-        apiRepository.getCensusEvents(10, 0, new ApiRepository.ApiCallback<CensusEvents>() {
+        apiRepository.getCensusEvents(10, 0, new APIRepository.ApiCallback<Events>() {
             @Override
-            public void onSuccess(CensusEvents result) {
-                censusEvents.clear();
-                censusEvents.addAll(List.of(result.getEvents()));
-                Log.d(TAG, "Loaded " + censusEvents.size() + " census events");
+            public void onSuccess(Events result) {
+                events.clear();
+                events.addAll(List.of(result.getEvents()));
+                Log.d(TAG, "Loaded " + events.size() + " census events");
             }
 
             @Override
@@ -225,9 +261,9 @@ public class MapFragment extends Fragment {
 
     private void loadRegionPopulationInfo(String eventId, String regionId, String regionName) {
         showLoading();
-        apiRepository.getRegionPopulationInfo(eventId, regionId, new ApiRepository.ApiCallback<PopulationInfo>() {
+        apiRepository.getRegionPopulationInfo(eventId, regionId, new APIRepository.ApiCallback<EventInfo>() {
             @Override
-            public void onSuccess(PopulationInfo result) {
+            public void onSuccess(EventInfo result) {
                 hideLoading();
                 if (!isAdded() || getActivity() == null) return;
                 showPopulationInfoDialog(regionName, result);
@@ -245,9 +281,9 @@ public class MapFragment extends Fragment {
 
     private void loadCityPopulationInfo(String eventId, String cityId, String cityName) {
         showLoading();
-        apiRepository.getCityPopulationInfo(eventId, cityId, new ApiRepository.ApiCallback<PopulationInfo>() {
+        apiRepository.getCityPopulationInfo(eventId, cityId, new APIRepository.ApiCallback<EventInfo>() {
             @Override
-            public void onSuccess(PopulationInfo result) {
+            public void onSuccess(EventInfo result) {
                 hideLoading();
                 if (!isAdded() || getActivity() == null) return;
                 showPopulationInfoDialog(cityName, result);
@@ -263,8 +299,8 @@ public class MapFragment extends Fragment {
         });
     }
 
-    private void showPopulationInfoDialog(String title, PopulationInfo info) {
-        PopulationInfoDialog dialog = new PopulationInfoDialog(getContext(), title, info);
+    private void showPopulationInfoDialog(String title, EventInfo info) {
+        EventInfoDialog dialog = new EventInfoDialog(getContext(), title, info);
         dialog.show();
     }
 
