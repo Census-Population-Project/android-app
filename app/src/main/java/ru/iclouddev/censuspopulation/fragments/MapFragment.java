@@ -40,6 +40,7 @@ import ru.iclouddev.censuspopulation.api.models.EventInfo;
 import ru.iclouddev.censuspopulation.dialogs.EventInfoDialog;
 import ru.iclouddev.censuspopulation.api.APIRepository;
 import ru.iclouddev.censuspopulation.ContainerIRSActivity;
+import ru.iclouddev.censuspopulation.viewmodels.CensusViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +63,7 @@ public class MapFragment extends Fragment {
     private CameraListener cameraListener;
     private APIRepository apiRepository;
     private ProgressBar progressBar;
+    private CensusViewModel censusViewModel;
 
     @Nullable
     @Override
@@ -83,6 +85,17 @@ public class MapFragment extends Fragment {
         mapView = binding.mapView;
         FloatingActionButton selectCensusButton = binding.selectCensusButton;
         progressBar = requireView().findViewById(R.id.progressBar);
+
+        // Подписываемся на изменения выбранной переписи
+        if (getActivity() instanceof ContainerIRSActivity) {
+            censusViewModel = ((ContainerIRSActivity) getActivity()).getCensusViewModel();
+            censusViewModel.getSelectedCensusEvent().observe(getViewLifecycleOwner(), event -> {
+                if (event != null) {
+                    selectedEvent = event;
+                    loadCensusEventDetails(event.getId());
+                }
+            });
+        }
 
         String mapStyle = utils.readRawResource(getContext(), R.raw.map_style);
         mapView.getMapWindow().getMap().setMapStyle(mapStyle);
@@ -107,18 +120,6 @@ public class MapFragment extends Fragment {
         mapObjects = mapView.getMapWindow().getMap().getMapObjects().addCollection();
 
         selectCensusButton.setOnClickListener(v -> showCensusEventDialog());
-
-        // Подписываемся на изменения выбранной переписи
-        if (getActivity() instanceof ContainerIRSActivity) {
-            ((ContainerIRSActivity) getActivity()).getCensusViewModel()
-                .getSelectedCensusEvent()
-                .observe(getViewLifecycleOwner(), event -> {
-                    if (event != null) {
-                        selectedEvent = event;
-                        loadCensusEventDetails(event.getId());
-                    }
-                });
-        }
 
         loadCensusEvents();
     }

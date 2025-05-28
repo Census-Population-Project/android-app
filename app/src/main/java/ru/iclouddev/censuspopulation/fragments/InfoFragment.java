@@ -62,6 +62,7 @@ public class InfoFragment extends Fragment {
         MaterialButton selectCensusButton = binding.selectCensusButton;
         progressBar = requireView().findViewById(R.id.progressBar);
 
+        // Подписываемся на изменения выбранной переписи
         if (getActivity() instanceof ContainerIRSActivity) {
             censusViewModel = ((ContainerIRSActivity) getActivity()).getCensusViewModel();
             censusViewModel.getSelectedCensusEvent().observe(getViewLifecycleOwner(), this::updateSelectedCensusInfo);

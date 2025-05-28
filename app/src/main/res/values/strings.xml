@@ -23,4 +23,9 @@
     <string name="general_information">Общая информация</string>
     <string name="demographic_data">Демографические данные</string>
     <string name="education_and_languages">Образование и языки</string>
+    <string name="gender_distribution">Распределение по полу</string>
+    <string name="distribution_by_education">Распределение по образованию</string>
+    <string name="languages_top">Топ языков</string>
+    <string name="regions_distribution">Распределение по регионам</string>
+    <string name="cities_distribution">Распределение по городам</string>
 </resources>

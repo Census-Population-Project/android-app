@@ -13,6 +13,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import ru.iclouddev.censuspopulation.CensusApplication;
 import ru.iclouddev.censuspopulation.R;
+import ru.iclouddev.censuspopulation.api.models.AllStatistics;
 import ru.iclouddev.censuspopulation.api.models.Response;
 import ru.iclouddev.censuspopulation.api.models.Event;
 import ru.iclouddev.censuspopulation.api.models.Events;
@@ -87,6 +88,35 @@ public class APIRepository {
                         @Override
                         public void onFailure(@NonNull Call<Response<Event>> call, @NonNull Throwable t) {
                             Log.e(TAG, "Error loading census event details", t);
+                            mainHandler.post(() -> callback.onError(R.string.error_network));
+                        }
+                    });
+        });
+    }
+
+    public void getCensusEventAllStatistics(String eventId, ApiCallback<AllStatistics> callback) {
+        executorService.execute(() -> {
+            CensusApplication.getInstance().getApiService()
+                    .getCensusEventAllStatistics(eventId)
+                    .enqueue(new Callback<Response<AllStatistics>>() {
+                        @Override
+                        public void onResponse(@NonNull Call<Response<AllStatistics>> call,
+                                               @NonNull retrofit2.Response<Response<AllStatistics>> response) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                Response<AllStatistics> apiResponse = response.body();
+                                if (apiResponse.isSuccess() && apiResponse.getResult() != null) {
+                                    mainHandler.post(() -> callback.onSuccess(apiResponse.getResult()));
+                                } else {
+                                    mainHandler.post(() -> callback.onError(R.string.error_no_data_for_view));
+                                }
+                            } else {
+                                mainHandler.post(() -> callback.onError(R.string.error_loading_data));
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<Response<AllStatistics>> call, @NonNull Throwable t) {
+                            Log.e(TAG, "Error loading census event all statistics", t);
                             mainHandler.post(() -> callback.onError(R.string.error_network));
                         }
                     });

@@ -69,7 +69,7 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
 
     // Yandex Maps
-    implementation("com.yandex.android:maps.mobile:4.5.0-lite")
+    implementation(libs.maps.mobile.v450lite)
     
     // Navigation Component
     implementation(libs.navigation.fragment)
@@ -86,4 +86,6 @@ dependencies {
     
     // Bottom Navigation
     implementation(libs.material.v1110)
+
+    implementation(libs.mpandroidchart)
 }

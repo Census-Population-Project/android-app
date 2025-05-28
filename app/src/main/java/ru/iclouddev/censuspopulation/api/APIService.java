@@ -4,6 +4,7 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import ru.iclouddev.censuspopulation.api.models.AllStatistics;
 import ru.iclouddev.censuspopulation.api.models.Response;
 import ru.iclouddev.censuspopulation.api.models.Event;
 import ru.iclouddev.censuspopulation.api.models.Events;
@@ -19,6 +20,11 @@ public interface APIService {
 
     @GET("api/v1/census/events/{eventId}")
     Call<Response<Event>> getCensusEventDetails(
+            @Path("eventId") String eventId
+    );
+
+    @GET("api/v1/census/events/{eventId}/statistics")
+    Call<Response<AllStatistics>> getCensusEventAllStatistics(
             @Path("eventId") String eventId
     );
 
